@@ -1,0 +1,51 @@
+on:
+  push:
+    branches:
+     - dev
+
+name: Create repo / image tag
+jobs:
+  build:
+    name: Build docker image
+    runs-on: sandbox
+    timeout-minutes: 15
+    env:
+      REMOTE_DOCKER_REGISTRY: test.test.com
+    steps:
+      - name: Determine Docker image tag and name
+        id: determine_tag
+        run: |
+          ref="${GITHUB_REF##*/}"
+          echo "::set-output name=ref::$(echo $ref)"
+          echo "::set-output name=full::$(echo ${{ env.REMOTE_DOCKER_REGISTRY }}/omni/loyalty:$ref)"
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DRY_RUN: true
+
+     # - name: Login to PrivateRegistry
+        # docker/login-action@v1.8.0
+     #   uses: docker/login-action@f3364599c6aa293cdc2b8391b1b56d0c30e45c8a
+     #   with:
+     #     registry: ${{ env.REMOTE_DOCKER_REGISTRY }}
+     #     username: gh-actions
+     #     password: ${{ secrets.HARBOR_US_GH_ACTIONS_PASSWORD }}
+
+      #- name: Build docker image
+      #  run: | Placeholder
+
+     # - name: Push docker image
+        # v2.4.0
+      #  uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+      #  with:
+      #    timeout_minutes: 5
+      #    max_attempts: 3
+      #    command: docker push ${{ steps.determine_tag.outputs.full }}
