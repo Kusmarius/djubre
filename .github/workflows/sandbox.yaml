@@ -26,7 +26,7 @@ jobs:
 
       - name: Build docker image
         run: |
-         whoami && pwd
+         ssh hagerty-sandbox-admin cd /opt/omni/hagerty-devops/devops/ansible/ && inv=inventories/hagerty/sandbox && echo $inv && whoami && pwd
 
 
       #- name: Bump version and push tag
