@@ -24,7 +24,7 @@ jobs:
         with:
           fetch-depth: "0"
 
-      - name: Build docker image
+      - name: Trigger deployment
         run: |
          ssh hagerty-sandbox-admin cd /opt/omni/hagerty-devops/devops/ansible/ && inv=inventories/hagerty/sandbox && echo $inv && whoami && pwd
 
