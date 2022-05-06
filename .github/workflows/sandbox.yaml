@@ -16,7 +16,7 @@ name: Create repo / image tag
 jobs:
   build:
     name: Build docker image
-    runs-on: sandbox
+    runs-on: us
     timeout-minutes: 15
     env:
       REMOTE_DOCKER_REGISTRY: test.test.com
