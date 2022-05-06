@@ -1,7 +1,16 @@
 on:
   push:
+    branches:    
+      - dev
+#      - '**hagerty-rc**'
+      - 'v*.*.*-hagerty-rc.*'
+    tags:        
+      - 'v*.*.*-hagerty'
+  pull_request:
     branches:
-     - dev
+      - dev
+#      - '**hagerty-rc**'      
+      - 'v*.*.*-hagerty-rc.*'
 
 name: Create repo / image tag
 jobs:
