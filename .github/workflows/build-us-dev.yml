@@ -1,0 +1,60 @@
+on:
+  push:
+    branches:
+      - dev
+name: tag
+jobs:
+  tag:
+    name: Create tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      REMOTE_DOCKER_REGISTRY: registry.wiredcraft.net
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+      - name: Where i am 
+        run: pwd && ls -la
+      - name: Bump Versions
+        uses: corkupine/bump-version@js
+        with:
+            version_file: ./VERSION
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch tags
+        shell: bash
+        run: git fetch --tags -f
+      - name: Determine Docker image tag and name
+        id: determine_tag
+        run: |
+          ref="v$(cat VERSION)"
+          echo "::set-output name=ref::$(echo $ref)"
+          echo "::set-output name=full::$(echo ${{ env.REMOTE_DOCKER_REGISTRY }}/omni/contact:$ref)"
+
+      - name: Login to PrivateRegistry
+        # docker/login-action@v1.8.0
+        uses: docker/login-action@f3364599c6aa293cdc2b8391b1b56d0c30e45c8a
+        with:
+          registry: ${{ env.REMOTE_DOCKER_REGISTRY }}
+          username: gh-actions
+          password: ${{ secrets.HARBOR_US_GH_ACTIONS_PASSWORD }}
+
+      - name: Build docker image
+        run: |
+          docker build -t ${{ steps.determine_tag.outputs.full }} \
+            --build-arg OMNI_COMPONENT=omni-contact \
+            --build-arg OMNI_COMPONENT_COMMIT=${{ github.sha }} \
+            --build-arg OMNI_COMPONENT_VERSION=${{ github.ref }} \
+            --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} \
+            --build-arg NODE_ENV=production \
+            .
+      - name: Push docker image
+        # v2.4.0
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          command: docker push ${{ steps.determine_tag.outputs.full }}
