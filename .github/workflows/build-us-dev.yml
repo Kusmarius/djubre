@@ -58,3 +58,14 @@ jobs:
           timeout_minutes: 5
           max_attempts: 3
           command: docker push ${{ steps.determine_tag.outputs.full }}
+  deploy:
+    name: Deploy
+    runs-on: ci
+    timeout-minutes: 15
+    env:
+      REMOTE_DOCKER_REGISTRY: registry.wiredcraft.net
+    steps:
+      - name: deploy
+        run: |
+         ssh hagerty-sandbox-admin cd /opt/omni/hagerty-devops/devops/ansible/ && inv=inventories/hagerty/sandbox && echo $inv && whoami && pwd
+
